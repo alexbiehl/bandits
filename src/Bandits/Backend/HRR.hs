@@ -26,7 +26,9 @@ import           Database.Relational.Query
 
 -- We need some specific instances for HDBC.
 -- as we don't want to leak HDBC in our core logic
--- we define orphan instances here.
+-- we define orphan instances here. As we have
+-- Multiparamtypeclasses here we cannot use
+-- standalonederiving.
 instance Convertible SqlValue Variation where
   safeConvert s = Variation <$> safeConvert s
 instance Convertible Variation SqlValue where
