@@ -25,9 +25,11 @@ library
                      , aeson
                      , base >= 4.7 && < 5
                      , containers
+                     , convertible
                      , deepseq
                      , free
                      , hashable
+                     , persistable-record
                      , relational-query
                      , relational-query-HDBC
                      , servant
