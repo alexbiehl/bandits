@@ -31,7 +31,7 @@ newtype Design = Design (Vector Variation)
                  deriving (Eq, Show, ToJSON, FromJSON, NFData )
 
 -- | A reward for a variation.
-newtype Reward = Reward Float
+newtype Reward = Reward Double
                  deriving (Eq, Ord, Show, ToJSON, FromJSON, NFData)
 
 -- | Collects all information about an experiment.

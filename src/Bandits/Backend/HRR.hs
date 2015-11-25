@@ -14,7 +14,6 @@ import           Bandits.Experiment.Types
 
 import           Control.Monad.Free
 import           Data.Convertible
-import           Data.Text                       (Text)
 import           Database.HDBC.Query.TH
 import           Database.HDBC.Record.Query
 import           Database.HDBC.Record.Statement
@@ -34,21 +33,28 @@ instance Convertible SqlValue Variation where
 instance Convertible Variation SqlValue where
   safeConvert (Variation s) = safeConvert s
 $(derivePersistableInstanceFromValue [t| Variation |])
-
 deriving instance PersistableWidth Variation
+
 instance Convertible SqlValue ExperimentId where
   safeConvert s = ExperimentId <$> safeConvert s
 instance Convertible ExperimentId SqlValue where
   safeConvert (ExperimentId s) = safeConvert s
 $(derivePersistableInstanceFromValue [t| ExperimentId |])
-
 deriving instance PersistableWidth ExperimentId
+
 instance Convertible SqlValue UserId where
   safeConvert s = UserId <$> safeConvert s
 instance Convertible UserId SqlValue where
   safeConvert (UserId s) = safeConvert s
 $(derivePersistableInstanceFromValue [t| UserId |])
 deriving instance PersistableWidth UserId
+
+instance Convertible SqlValue Reward where
+  safeConvert s = Reward <$> safeConvert s
+instance Convertible Reward SqlValue where
+  safeConvert (Reward s) = safeConvert s
+$(derivePersistableInstanceFromValue [t| Reward |])
+deriving instance PersistableWidth Reward
 
 -- Table definition for relational record.
 $(defineTableDefault
@@ -64,7 +70,20 @@ $(defineTableDefault
   Nothing
  )
 
--- | Abstracts the presence of the HDBC connection.
+$(defineTableDefault
+  defaultConfig
+  "bandits"
+  "reward1"
+  [ ("r_experiment_id", [t| ExperimentId |])
+  , ("r_user_id", [t| UserId |])
+  , ("r_reward", [t| Reward |])
+  ]
+  []
+  [0,1,2]
+  Nothing
+ )
+
+-- | Hides the presence of the HDBC connection.
 type RunHRRBackend a = forall c. IConnection c => c -> IO a
 
 -- | Runs an experiment in the Free monad constructor.
@@ -87,3 +106,6 @@ queryAssignment eid uid conn = do
   es <- execute (bind ps (eid, uid))
   ma <- fetchUnique' es
   return $ asVariation <$> ma
+
+insertReward :: ExperimentId -> UserId -> Reward -> RunHRRBackend ()
+insertReward eid uid rew conn = undefined
