@@ -7,8 +7,8 @@ import           Control.DeepSeq
 import           Control.Monad
 import           Data.Aeson
 import           Data.Hashable
-import           Data.Text                       (Text)
-import           Data.Vector                     (Vector)
+import           Data.Text           (Text)
+import           Data.Vector         (Vector)
 import           GHC.Generics
 import           Servant.Common.Text
 
@@ -44,18 +44,20 @@ type Temprature = Float
 
 -- | The available bandit types with their respective parameters.
 data BanditType = BtEpsilonGreedy Epsilon
+                  -- ^ Chooses the epsilongreedy bandit.
                 | BtSoftmax Temprature
+                  -- ^ Chooses the softmax bandit.
                 deriving (Eq, Show)
 
 -- | Collects all information about an experiment.
 data Experiment =
-  Experiment { expName          :: Text
+  Experiment { expName         :: Text
                -- ^ A name for the experiment.
-             , expDescr         :: Text
+             , expDescr        :: Text
                -- ^ A description for an experiment.
-             , expAlternnatives :: Alternatives
+             , expAlternatives :: Alternatives
                -- ^ The variations for the experiment.
-             , expParams        :: BanditType
+             , expBanditType   :: BanditType
                -- ^ The specific bandit to use.
              } deriving ( Eq, Show, Generic )
 
