@@ -18,8 +18,7 @@ library
   exposed-modules:     Bandits.Api
                        Bandits.Backend.HRR
                        Bandits.Types
-                       Bandits.Experiment.Instructions
-                       Bandits.Experiment.Intermidiate
+                       Bandits.Experiment.Instructions                       
                        Bandits.Experiment.MultiarmedBandit
                        Bandits.Experiment.Types  
   build-depends:       HDBC

@@ -1,13 +1,14 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 module Bandits.Experiment.Types where
 
 import           Control.DeepSeq
+import           Control.Monad
 import           Data.Aeson
 import           Data.Hashable
-import           Data.Text           (Text)
-import           Data.Time
-import           Data.Vector         (Vector)
+import           Data.Text                       (Text)
+import           Data.Vector                     (Vector)
 import           GHC.Generics
 import           Servant.Common.Text
 
@@ -27,26 +28,50 @@ newtype Variation = MkVariation Text
 
 -- | An experiment design is a collection of variations from which to
 --   choose one for each proband.
-newtype Design = MkDesign (Vector Variation)
-                 deriving ( Eq, Show, ToJSON, FromJSON, NFData )
+newtype Alternatives = MkAlternatives (Vector Variation)
+                     deriving ( Eq, Show, ToJSON, FromJSON, NFData )
 
 -- | A reward for a variation.
 newtype Reward = MkReward Double
                  deriving ( Eq, Ord, Show, ToJSON, FromJSON, NFData )
 
+-- | Represents the probability with which the epsilongreedy bandit
+--   explores new alternatives. (0 <= eps <= 1.0)
+type Epsilon = Float
+
+-- | The temrature for the softmax bandit.
+type Temprature = Float
+
+-- | The available bandit types with their respective parameters.
+data BanditType = BtEpsilonGreedy Epsilon
+                | BtSoftmax Temprature
+                deriving (Eq, Show)
+
 -- | Collects all information about an experiment.
 data Experiment =
-  Experiment { expName   :: Text
-             , expDescr  :: Text
-             , expStart  :: Day
-             , expEnd    :: Day
-             , expDesign :: Design
+  Experiment { expName          :: Text
+               -- ^ A name for the experiment.
+             , expDescr         :: Text
+               -- ^ A description for an experiment.
+             , expAlternnatives :: Alternatives
+               -- ^ The variations for the experiment.
+             , expParams        :: BanditType
+               -- ^ The specific bandit to use.
              } deriving ( Eq, Show, Generic )
 
+instance FromJSON BanditType where
+  parseJSON = withObject "bandit" $ \o -> do
+    bt <- o .: "type"
+    case (bt :: Text) of
+      "epsilon_greedy" ->
+        BtEpsilonGreedy <$> o .:? "epsilon" .!= 0.1
+      "softmax" ->
+        BtSoftmax <$> o .: "temperature" .!= 0.2
+      _ -> mzero
+
 instance FromJSON Experiment where
-  parseJSON v =
-    Experiment <$> parseJSON v
-               <*> parseJSON v
-               <*> undefined
-               <*> undefined
-               <*> parseJSON v
+  parseJSON = withObject "experiment" $ \o ->
+    Experiment <$> o .: "name"
+               <*> o .: "description"
+               <*> o .: "alternatives"
+               <*> o .: "bandit"
