@@ -34,33 +34,33 @@ import           Language.Haskell.TH.Name.CamelCase
 -- Multiparamtypeclasses here we cannot use
 -- standalonederiving.
 instance Convertible SqlValue Variation where
-  safeConvert s = Variation <$> safeConvert s
+  safeConvert s = MkVariation <$> safeConvert s
 instance Convertible Variation SqlValue where
-  safeConvert (Variation s) = safeConvert s
+  safeConvert (MkVariation s) = safeConvert s
 $(derivePersistableInstanceFromValue [t| Variation |])
 deriving instance PersistableWidth Variation
 deriving instance ShowConstantTermsSQL Variation
 
 instance Convertible SqlValue ExperimentId where
-  safeConvert s = ExperimentId <$> safeConvert s
+  safeConvert s = MkExperimentId <$> safeConvert s
 instance Convertible ExperimentId SqlValue where
-  safeConvert (ExperimentId s) = safeConvert s
+  safeConvert (MkExperimentId s) = safeConvert s
 $(derivePersistableInstanceFromValue [t| ExperimentId |])
 deriving instance PersistableWidth ExperimentId
 deriving instance ShowConstantTermsSQL ExperimentId
 
 instance Convertible SqlValue UserId where
-  safeConvert s = UserId <$> safeConvert s
+  safeConvert s = MkUserId <$> safeConvert s
 instance Convertible UserId SqlValue where
-  safeConvert (UserId s) = safeConvert s
+  safeConvert (MkUserId s) = safeConvert s
 $(derivePersistableInstanceFromValue [t| UserId |])
 deriving instance PersistableWidth UserId
 deriving instance ShowConstantTermsSQL UserId
 
 instance Convertible SqlValue Reward where
-  safeConvert s = Reward <$> safeConvert s
+  safeConvert s = MkReward <$> safeConvert s
 instance Convertible Reward SqlValue where
-  safeConvert (Reward s) = safeConvert s
+  safeConvert (MkReward s) = safeConvert s
 $(derivePersistableInstanceFromValue [t| Reward |])
 deriving instance PersistableWidth Reward
 deriving instance ShowConstantTermsSQL Reward
@@ -123,7 +123,7 @@ updateReward eid uid rew conn = do
         asReward' <-# value rew
         wheres $ proj ! asExperimentId' .=. value eid
         wheres $ proj ! asUserId' .=. value uid
-        wheres $ proj ! asReward' .=. value (Reward 0.0)
+        wheres $ proj ! asReward' .=. value (MkReward 0.0)
 
 insertAssignment' :: ExperimentId -> UserId -> Variation -> RunHRRBackend ()
 insertAssignment' eid uid var conn = do
@@ -131,6 +131,6 @@ insertAssignment' eid uid var conn = do
   _  <- Insert.runPreparedInsert ps Assignment { asExperimentId = eid
                                                , asUserId = uid
                                                , asVariation = var
-                                               , asReward = Reward 0.0
+                                               , asReward = MkReward 0.0
                                                }
   return ()
