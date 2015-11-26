@@ -23,16 +23,16 @@ newtype ExperimentId = MkExperimentId Text
 
 -- | Represents a choosing from the underlying experiment.
 newtype Variation = MkVariation Text
-                    deriving (Eq, Show, ToJSON, FromJSON, NFData )
+                    deriving ( Eq, Show, ToJSON, FromJSON, NFData )
 
 -- | An experiment design is a collection of variations from which to
 --   choose one for each proband.
 newtype Design = MkDesign (Vector Variation)
-                 deriving (Eq, Show, ToJSON, FromJSON, NFData )
+                 deriving ( Eq, Show, ToJSON, FromJSON, NFData )
 
 -- | A reward for a variation.
 newtype Reward = MkReward Double
-                 deriving (Eq, Ord, Show, ToJSON, FromJSON, NFData)
+                 deriving ( Eq, Ord, Show, ToJSON, FromJSON, NFData )
 
 -- | Collects all information about an experiment.
 data Experiment =
