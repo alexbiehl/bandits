@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -19,9 +20,11 @@ import           Database.HDBC.Record.Query
 import           Database.HDBC.Record.Statement
 import           Database.HDBC.Record.TH
 import           Database.HDBC.SqlValue
-import           Database.HDBC.Types             (IConnection)
+import           Database.HDBC.Types                (IConnection)
 import           Database.Record.Persistable
 import           Database.Relational.Query
+import           GHC.Generics
+import           Language.Haskell.TH.Name.CamelCase
 
 -- We need some specific instances for HDBC.
 -- as we don't want to leak HDBC in our core logic
@@ -59,27 +62,39 @@ deriving instance PersistableWidth Reward
 -- Table definition for relational record.
 $(defineTableDefault
   defaultConfig
+  -- schema name
   "bandits"
+  -- table name
   "assignment"
+  -- columns
   [ ("as_experiment_id", [t| ExperimentId |])
   , ("as_user_id", [t| UserId |])
   , ("as_variation", [t| Variation |])
   ]
-  []
+  -- derivings
+  [toConName "Eq", toConName "Show", toConName "Generic"]
+  -- primary key columns
   [0, 1]
+  -- not null column?
   Nothing
  )
 
 $(defineTableDefault
   defaultConfig
+  -- schema name
   "bandits"
+  -- table name
   "reward1"
+  -- columns
   [ ("r_experiment_id", [t| ExperimentId |])
   , ("r_user_id", [t| UserId |])
   , ("r_reward", [t| Reward |])
   ]
-  []
+  -- derivings
+  [toConName "Eq", toConName "Show", toConName "Generic"]
+  -- primary key columns
   [0,1,2]
+  -- not null column?
   Nothing
  )
 
@@ -108,4 +123,4 @@ queryAssignment eid uid conn = do
   return $ asVariation <$> ma
 
 insertReward :: ExperimentId -> UserId -> Reward -> RunHRRBackend ()
-insertReward eid uid rew conn = undefined
+insertReward eid uid rew = undefined

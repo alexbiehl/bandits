@@ -29,6 +29,7 @@ library
                      , deepseq
                      , free
                      , hashable
+                     , names-th
                      , persistable-record
                      , relational-query
                      , relational-query-HDBC
