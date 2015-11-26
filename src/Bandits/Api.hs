@@ -53,7 +53,9 @@ data Result a = ResOk a
 
 instance ToJSON a => ToJSON (Result a) where
   toJSON (ResOk a) =
-    object [ "result" .= toJSON a ]
+    object [ "result" .= ("ok" :: Text)
+           , "result_data" .= a
+           ]
   toJSON (ResErr status _ err) =
     object [ "error" .= status
            , "error_msg" .= err
@@ -62,8 +64,8 @@ instance ToJSON a => ToJSON (Result a) where
 resultToServantErr :: ToJSON a => Result a -> EitherT ServantErr IO (Result a)
 resultToServantErr (ResOk a) = return (ResOk a)
 resultToServantErr err@(ResErr status phrase _) =
-  left  ServantErr { errHTTPCode = status
-                   , errReasonPhrase = phrase
-                   , errBody = encode err
-                   , errHeaders = [ ("Content-Type", "application/json") ]
-                   }
+  left ServantErr { errHTTPCode = status
+                  , errReasonPhrase = phrase
+                  , errBody = encode err
+                  , errHeaders = [ ("Content-Type", "application/json") ]
+                  }
