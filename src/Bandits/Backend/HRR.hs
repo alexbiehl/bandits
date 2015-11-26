@@ -17,7 +17,7 @@ import           Control.Monad.Free
 import           Data.Convertible
 import           Database.HDBC.Query.TH
 import qualified Database.HDBC.Record.Insert        as Insert
-import           Database.HDBC.Record.Query
+import qualified Database.HDBC.Record.Query         as Query
 import           Database.HDBC.Record.Statement
 import           Database.HDBC.Record.TH
 import qualified Database.HDBC.Record.Update        as Update
@@ -107,9 +107,9 @@ runExperiment m conn = iterM run m
 -- | Queries the database
 queryAssignment :: ExperimentId -> UserId -> RunHRRBackend (Maybe Variation)
 queryAssignment eid uid conn = do
-  ps <- prepare conn selectAssignment
+  ps <- Query.prepare conn selectAssignment
   es <- execute (bind ps (eid, uid))
-  ma <- fetchUnique' es
+  ma <- Query.fetchUnique' es
   return $ asVariation <$> ma
 
 updateReward :: ExperimentId -> UserId -> Reward -> RunHRRBackend ()

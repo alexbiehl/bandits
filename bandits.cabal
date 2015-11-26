@@ -19,6 +19,7 @@ library
                        Bandits.Backend.HRR
                        Bandits.Types
                        Bandits.Experiment.Instructions
+                       Bandits.Experiment.Intermidiate
                        Bandits.Experiment.MultiarmedBandit
                        Bandits.Experiment.Types  
   build-depends:       HDBC
@@ -26,9 +27,11 @@ library
                      , base >= 4.7 && < 5
                      , containers
                      , convertible
+                     , cryptonite
                      , deepseq
                      , free
                      , hashable
+                     , memory
                      , names-th
                      , persistable-record
                      , relational-query
