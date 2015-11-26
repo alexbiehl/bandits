@@ -25,10 +25,12 @@ library
   build-depends:       HDBC
                      , aeson
                      , base >= 4.7 && < 5
+                     , bytestring
                      , containers
                      , convertible
                      , cryptonite
                      , deepseq
+                     , either
                      , free
                      , hashable
                      , memory
@@ -37,6 +39,7 @@ library
                      , relational-query
                      , relational-query-HDBC
                      , servant
+                     , servant-server
                      , stm
                      , text
                      , time
