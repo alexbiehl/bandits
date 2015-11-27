@@ -21,6 +21,8 @@ type Weight = Float
 -- | A lightweight base monad for bandits.
 type RunBandit m = ( MonadFree BanditInstr m )
 
+type Bandit = forall m. RunBandit m => m Arm
+
 -- | Some backend agnostic instructions every bandit understands.
 data BanditInstr a = RandomProbability (Float -> a)
                    | RandomArm (Arm -> a)
@@ -28,6 +30,11 @@ data BanditInstr a = RandomProbability (Float -> a)
                    | forall x. Collect (Arm -> Weight -> x) (Vector x -> a)
 
 deriving instance Functor BanditInstr
+
+-- | Creates a bandit from a bandit type.
+mkBandit :: BanditType -> Bandit
+mkBandit (BtEpsilonGreedy eps) = mkEpsilonGreedy eps
+mkBandit (BtSoftmax tmp) = mkSoftmax tmp
 
 -- | Generate a random probability (0 <= p <= 1.0).
 randomProbability :: RunBandit m => m Float
@@ -50,6 +57,14 @@ mkEpsilonGreedy :: RunBandit m => Epsilon -> m Arm
 mkEpsilonGreedy eps = do
   p <- randomProbability
   if p <= (1 - eps)
-    then do ax <- collect (,)
-            undefined
+    then do Just (arm, _) <- scan best Nothing
+            return arm
     else randomArm
+  where
+    best arm weight r@(Just (_, weight'))
+      | weight >= weight' = Just (arm, weight)
+      | otherwise = r
+    best arm weight Nothing = Just (arm, weight)
+
+mkSoftmax :: RunBandit m => Temprature -> m Arm
+mkSoftmax = undefined
