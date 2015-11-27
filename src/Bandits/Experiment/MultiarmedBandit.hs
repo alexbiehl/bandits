@@ -9,8 +9,9 @@ module Bandits.Experiment.MultiarmedBandit where
 import           Bandits.Experiment.Types
 
 import           Control.Monad.Free
+import           Data.Foldable
 import           Data.Vector              (Vector)
-import qualified Data.Vector as Vector
+import qualified Data.Vector              as Vector
 
 -- | An arm is a variation in our case.
 type Arm = Variation
@@ -26,6 +27,7 @@ type Bandit = forall m. RunBandit m => m Arm
 -- | Some backend agnostic instructions every bandit understands.
 data BanditInstr a = RandomProbability (Float -> a)
                    | RandomArm (Arm -> a)
+                   | ChooseArm Int (Arm -> a)
                    | forall x. Scan (Arm -> Weight -> x -> x) x (x -> a)
                    | forall x. Collect (Arm -> Weight -> x) (Vector x -> a)
 
@@ -43,6 +45,10 @@ randomProbability = liftF (RandomProbability id)
 -- | Well, bandit doesn't care what arm is taken. Choose it randomly.
 randomArm :: RunBandit m => m Arm
 randomArm = liftF (RandomArm id)
+
+-- | Choose an arm with an index
+chooseArm :: RunBandit m => Int -> m Arm
+chooseArm n = liftF (ChooseArm n id)
 
 -- | Sometimes bandit needs to examine the arms and their weights.
 scan :: RunBandit m => (Arm -> Float -> a -> a) -> a -> m a
@@ -67,4 +73,15 @@ mkEpsilonGreedy eps = do
     best arm weight Nothing = Just (arm, weight)
 
 mkSoftmax :: RunBandit m => Temprature -> m Arm
-mkSoftmax = undefined
+mkSoftmax t = do
+  -- Normalize the weights respecting the temprature
+  norms <- collect (\_ w -> exp (w / (t * 100)))
+  p <- randomProbability
+  let scale = foldl' (+) 0 norms
+      -- scale the norms using the scale
+      probs = fmap (/ scale) norms
+      -- accumulate the probabilities
+      acc = Vector.scanl (+) 0.0 probs
+      -- find the index where the value is bigger than p.
+      Just i = Vector.findIndex (>= p) acc
+  chooseArm i
