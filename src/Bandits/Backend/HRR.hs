@@ -11,18 +11,21 @@
 module Bandits.Backend.HRR where
 
 import           Bandits.Experiment.Instructions
+import           Bandits.Experiment.MultiarmedBandit
 import           Bandits.Experiment.Types
 
 import           Control.Monad.Free
 import           Data.Convertible
+import           Data.Functor.Sum
 import           Database.HDBC.Query.TH
-import qualified Database.HDBC.Record.Insert        as Insert
-import qualified Database.HDBC.Record.Query         as Query
+import qualified Database.HDBC.Record.Insert         as Insert
+import qualified Database.HDBC.Record.Query          as Query
 import           Database.HDBC.Record.Statement
 import           Database.HDBC.Record.TH
-import qualified Database.HDBC.Record.Update        as Update
+import qualified Database.HDBC.Record.Update         as Update
 import           Database.HDBC.SqlValue
-import           Database.HDBC.Types                (IConnection)
+import           Database.HDBC.Types                 (IConnection)
+import           Database.Record
 import           Database.Record.Persistable
 import           Database.Relational.Query
 import           GHC.Generics
@@ -65,6 +68,17 @@ $(derivePersistableInstanceFromValue [t| Reward |])
 deriving instance PersistableWidth Reward
 deriving instance ShowConstantTermsSQL Reward
 
+instance Convertible SqlValue BanditType where
+  safeConvert s = read <$> safeConvert s
+instance Convertible BanditType SqlValue where
+  safeConvert = safeConvert . show
+instance FromSql SqlValue BanditType where
+  recordFromSql = valueFromSql
+instance ToSql SqlValue BanditType where
+  recordToSql = valueToSql
+instance PersistableWidth BanditType where
+  persistableWidth = unsafeValueWidth
+
 -- Table definition for relational record.
 $(defineTableDefault
   defaultConfig
@@ -88,6 +102,30 @@ $(defineTableDefault
 
 -- | Hides the presence of the HDBC connection.
 type RunHRRBackend a = forall c. IConnection c => c -> IO a
+
+runExperiment1 :: Free (Sum ExpInstr BanditInstr) a -> RunHRRBackend a
+runExperiment1 m conn = iterM run m
+  where
+    run :: Sum ExpInstr BanditInstr (IO a) -> IO a
+    run (InL (LookupAssignment eid uid k)) = do
+      undefined
+    run (InL (NewAssignment eid uid k)) = do
+      arm <- runExperiment1 (mkBandit undefined) conn
+      k arm
+
+    run (InL (NewReward eid uid rew k)) = do
+      undefined
+
+    run (InR (RandomProbability k)) = do
+      undefined
+    run (InR (RandomArm k)) = do
+      undefined
+    run (InR (ChooseArm i k)) = do
+      undefined
+    run (InR (Scan f n k)) = do
+      undefined
+    run (InR (Collect f k)) = do
+      undefined
 
 -- | Runs an experiment in the Free monad constructor.
 runExperiment :: Free ExpInstr a -> RunHRRBackend a

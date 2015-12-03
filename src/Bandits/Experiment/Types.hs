@@ -47,7 +47,7 @@ data BanditType = BtEpsilonGreedy Epsilon
                   -- ^ Chooses the epsilongreedy bandit.
                 | BtSoftmax Temprature
                   -- ^ Chooses the softmax bandit.
-                deriving (Eq, Show)
+                deriving (Eq, Read, Show)
 
 -- | Collects all information about an experiment.
 data Experiment =
